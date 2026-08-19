@@ -1,6 +1,11 @@
 <?php
-// exporter_csv.php
+// On active la mise en mémoire tampon pour empêcher tout envoi prématuré de texte ou d'espaces
+ob_start();
+
 require_once 'db.php';
+
+// Efface tout contenu parasite éventuel généré par db.php (espaces, retours à la ligne)
+ob_clean();
 
 // Nom du fichier téléchargé
 $filename = "historique_cdrs_" . date('Y-m-d_H-i') . ".csv";
@@ -11,6 +16,9 @@ header('Content-Disposition: attachment; filename="' . $filename . '"');
 
 // Ouvrir le flux de sortie PHP
 $output = fopen('php://output', 'w');
+
+// Ajouter le BOM UTF-8 pour assurer l'affichage correct des caractères accentués sous Excel
+fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
 // Ligne d'en-tête du fichier CSV (Colonnes)
 fputcsv($output, ['Session ID', 'Appelant', 'Service', 'Quantite', 'Montant (MGA)', 'Statut', 'Date Evenement'], ';');
@@ -36,5 +44,8 @@ while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 }
 
 fclose($output);
+
+// Libère la mémoire tampon et termine le script proprement
+ob_end_flush();
 exit();
-?>
+?>  
