@@ -1,28 +1,26 @@
 <?php
-// db.php : Connexion sécurisée à la base de données MySQL sous XAMPP
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'facturation_reseau'); // Le nom exact de votre base
-define('DB_USER', 'root');              // Identifiant XAMPP par défaut
-define('DB_PASS', '');                  // Mot de passe vide par défaut sous XAMPP
-define('DB_CHARSET', 'utf8mb4');
+// db.php : Connexion dynamique à la base de données (Local XAMPP / Cloud Render)
+
+// Lecture des variables d'environnement Render/Clever Cloud avec fallback sur XAMPP local
+$host    = getenv('DB_HOST') ?: 'localhost';
+$dbname  = getenv('DB_NAME') ?: 'facturation_reseau';
+$user    = getenv('DB_USER') ?: 'root';
+$pass    = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
+$port    = getenv('DB_PORT') ?: 3306;
+$charset = 'utf8mb4';
 
 try {
-    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=$charset";
     
     $options = [
-        // Active les exceptions en cas d'erreur SQL (très utile pour déboguer)
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-        // Retourne automatiquement les résultats sous forme de tableaux associatifs
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        // Utilise les vraies requêtes préparées pour maximiser la sécurité contre les injections SQL
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
 
-    // Création de l'instance PDO
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    $pdo = new PDO($dsn, $user, $pass, $options);
 
 } catch (PDOException $e) {
-    // Message clair en cas d'erreur
     die("Erreur de connexion à la base de données : " . $e->getMessage());
 }
 ?> 
